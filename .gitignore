@@ -1,2 +1,200 @@
-*.agdai
-MAlonzo/**
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GATO BLOX Store</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
+body{background:#0b0b0f;color:#fff}
+header{
+  padding:15px;text-align:center;
+  background:linear-gradient(90deg,#6a00ff,#9d00ff);
+  font-size:20px;font-weight:bold;
+}
+.container{padding:15px}
+.produto{
+  background:#15151f;border:1px solid #2a2a3a;
+  border-radius:12px;padding:15px;margin-bottom:15px
+}
+.badge{background:#00c853;padding:4px 8px;border-radius:6px;font-size:12px}
+button{
+  width:100%;padding:12px;background:#6a00ff;border:none;
+  border-radius:8px;color:#fff;font-size:16px;margin-top:8px
+}
+button:disabled{opacity:.5}
+.modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.85);
+  display:none;align-items:center;justify-content:center;z-index:100
+}
+.modal-content{
+  background:#15151f;padding:20px;border-radius:12px;
+  width:90%;max-width:400px;text-align:center
+}
+input{
+  width:80%;padding:8px;margin:10px auto;
+  border-radius:6px;border:none;background:#222;color:#fff;text-align:center
+}
+.whats{background:#25D366}
+.close{background:#333}
+#pixBox{
+  margin-top:10px;
+  background:#0f0f18;
+  border:1px dashed #6a00ff;
+  border-radius:10px;
+  padding:10px;
+  display:none;
+}
+#fechado{
+  position:fixed;inset:0;background:#000e;
+  display:none;align-items:center;justify-content:center;
+  z-index:200;text-align:center;padding:20px
+}
+#fechado h1{color:#ff4081}
+#contatoBtn, #admBtn{
+  position:fixed;
+  bottom:15px;
+  padding:12px 16px;
+  border:none;
+  border-radius:50px;
+  font-size:14px;
+  z-index:300;
+}
+#contatoBtn{
+  left:15px;
+  background:#25D366;
+}
+#admBtn{
+  right:15px;
+  background:#ff4081;
+}
+</style>
+</head>
+
+<body>
+
+<header>🐱 GATO BLOX Store</header>
+
+<div class="container" id="listaProdutos"></div>
+
+<!-- BOTÕES FIXOS -->
+<button id="contatoBtn" onclick="contatoVendas()">💬 Contato Vendas</button>
+<button id="admBtn" onclick="abrirAdm()">🔐 Painel ADM</button>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <h3 id="produtoNome"></h3>
+    <p id="precoFinal"></p>
+    <p id="estoqueInfo"></p>
+
+    <input id="cupom" placeholder="Código de desconto">
+
+    <div id="pixBox">
+      <p>💳 PIX: <b>73 99826-2425</b></p>
+      <button onclick="copiarPix()">📋 Copiar PIX</button>
+    </div>
+
+    <button class="whats" onclick="finalizarCompra()">📲 Finalizar no WhatsApp</button>
+    <button class="close" onclick="fecharModal()">Cancelar</button>
+  </div>
+</div>
+
+<!-- LOJA FECHADA -->
+<div id="fechado">
+  <div>
+    <h1>😴 Ops! Estou dormindo</h1>
+    <p>Loja volta amanhã às <b>12:00</b> em ponto</p>
+  </div>
+</div>
+
+<script>
+const WHATSAPP = "5573998262425";
+const PIX = "73998262425";
+
+let produtos = [
+ {nome:"🧠 Conta com Brainrot Aleatório", preco:10, estoque:10},
+ {nome:"🔥 Blox Fruits – Nível Máx", preco:10, estoque:10},
+ {nome:"🎉 Evento 2026 – Brainrot 67", preco:15, estoque:1},
+ {nome:"🍀 Luck Block (3 por R$ 3)", preco:3, estoque:1},
+ {nome:"🦊 Conta Kitsune – Nível Máx", preco:6, estoque:1}
+];
+
+let produtoAtual = 0;
+
+/* HORÁRIO */
+function lojaFechada(){
+ const h = new Date().getHours();
+ document.getElementById("fechado").style.display =
+   (h >= 6 && h < 12) ? "flex" : "none";
+}
+setInterval(lojaFechada,1000);
+lojaFechada();
+
+/* RENDER */
+function render(){
+ const lista = document.getElementById("listaProdutos");
+ lista.innerHTML="";
+ produtos.forEach((p,i)=>{
+  lista.innerHTML+=`
+   <div class="produto">
+    <span class="badge">${p.estoque>0?"Disponível":"Esgotado"}</span>
+    <h2>${p.nome}</h2>
+    <p>Preço: R$ ${p.preco},00</p>
+    <p>Estoque: ${p.estoque}</p>
+    <button ${p.estoque<=0?"disabled":"onclick='abrirModal("+i+")'"}>Comprar</button>
+   </div>`;
+ });
+}
+
+/* MODAL */
+function abrirModal(i){
+ produtoAtual=i;
+ document.getElementById("pixBox").style.display="block";
+ atualizarPreco();
+ document.getElementById("estoqueInfo").innerText="Estoque: "+produtos[i].estoque;
+ document.getElementById("modal").style.display="flex";
+}
+function fecharModal(){document.getElementById("modal").style.display="none"}
+
+function atualizarPreco(){
+ document.getElementById("produtoNome").innerText=produtos[produtoAtual].nome;
+ document.getElementById("precoFinal").innerText=
+   "Total: R$ "+produtos[produtoAtual].preco+",00";
+}
+
+/* FINALIZAR */
+function finalizarCompra(){
+ if(produtos[produtoAtual].estoque<=0)return;
+ produtos[produtoAtual].estoque--;
+ render();
+ const msg=`🐱 GATO BLOX STORE
+🛒 Produto: ${produtos[produtoAtual].nome}
+💰 Valor: R$ ${produtos[produtoAtual].preco},00
+💳 PIX: ${PIX}`;
+ window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`);
+ fecharModal();
+}
+
+/* COPIAR PIX */
+function copiarPix(){
+ navigator.clipboard.writeText(PIX);
+ alert("PIX copiado!");
+}
+
+/* CONTATO */
+function contatoVendas(){
+ window.open(`https://wa.me/${WHATSAPP}?text=Oi! Vim pelo site GATO BLOX e quero comprar.`);
+}
+
+/* ADM → CONTATO DIRETO */
+function abrirAdm(){
+ window.open(`https://wa.me/${WHATSAPP}?text=Oi! Sou ADM e preciso falar com você.`);
+}
+
+render();
+</script>
+
+</body>
+</html>
